@@ -1,0 +1,43 @@
+# Advanced Macro Trading Terminal - Dependencies
+# ==============================================
+# Install with: pip install -r requirements.txt
+
+# Web Framework
+fastapi==0.109.2
+uvicorn==0.27.1
+jinja2==3.1.3
+
+# Data Processing
+pandas==2.2.0
+numpy==1.26.4
+scipy==1.12.0
+
+# Time Series & Machine Learning
+statsmodels==0.14.1
+scikit-learn==1.4.0
+
+# Data Sources
+fredapi==0.5.2
+yfinance==0.2.36
+
+# HTTP & Web Scraping
+requests==2.31.0
+beautifulsoup4==4.12.3
+lxml==5.1.0
+
+# Visualization (for future Streamlit compatibility)
+plotly==5.19.0
+streamlit==1.31.1
+
+# Utilities
+python-dotenv==1.0.1
+python-dateutil==2.8.2
+
+# Testing
+pytest==8.0.0
+pytest-cov==4.1.0
+pytest-asyncio==0.23.4
+
+# Code Quality
+ruff==0.2.1
+black==24.1.1

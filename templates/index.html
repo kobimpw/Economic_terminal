@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Macro Trading Terminal</title>
+    <meta name="description" content="Advanced Macro Trading Terminal with AI-powered analysis of economic indicators">
+
+    <!-- Google Fonts - Professional typography -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+    <!-- Chart.js for visualizations -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation"></script>
+
+    <link rel="stylesheet" href="/static/styles.css">
+</head>
+
+<body>
+    <!-- Header -->
+    <header class="header">
+        <div class="header-content">
+            <h1 class="logo">Macro Trading Terminal</h1>
+            <div class="header-actions">
+                <button id="refreshCalendar" class="btn btn-secondary btn-sm">
+                    <span class="btn-icon">↻</span> Refresh
+                </button>
+                <button id="refreshStocks" class="btn btn-secondary btn-sm"
+                    title="Aktualizuj dane spółek S&P 500 (może potrwać ~5 min)">
+                    <span class="btn-icon">📈</span> Update Stocks
+                </button>
+                <button id="refreshEconomic" class="btn btn-secondary btn-sm" title="Aktualizuj kalendarz ekonomiczny">
+                    <span class="btn-icon">📅</span> Update Economic
+                </button>
+                <button id="openDailyAI" class="btn btn-primary btn-sm" title="Daily AI Summary">
+                    <span class="btn-icon">🤖</span> Daily AI
+                </button>
+                <div class="api-status">
+                    <span class="status-dot status-active"></span>
+                    <span class="status-text">Connected</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Market Glance Strip (ETF Ticker) -->
+    <section class="market-glance" id="marketGlance">
+        <!-- Populated by JS -->
+    </section>
+
+    <!-- Main Full-Width Calendar Layout -->
+    <main class="main-fullwidth">
+        <div class="calendar-fullwidth">
+            <div class="calendar-header-bar">
+                <h2>ECONOMIC CALENDAR</h2>
+            </div>
+
+            <div class="loading-spinner" id="calendarLoading">
+                <div class="spinner"></div>
+                <span>Loading calendar...</span>
+            </div>
+
+            <!-- Calendar with expandable tiles -->
+            <div id="calendarList" class="expandable-calendar">
+                <!-- Populated by JS - each indicator is a <details> element -->
+            </div>
+        </div>
+
+        <!-- Daily AI Summary Panel (hidden by default) -->
+        <div class="dailyai-main-panel" id="dailyAIMainPanel" style="display: none;">
+            <div class="dailyai-main-header">
+                <h2>📊 Daily AI Summary</h2>
+                <button id="closeDailyAI" class="btn btn-secondary btn-sm">✕ Close</button>
+            </div>
+            <div class="dailyai-main-content">
+                <div class="dailyai-days-list" id="dailyAIDaysList">
+                    <!-- Days will be populated by JS -->
+                </div>
+                <div class="dailyai-article-panel" id="dailyAIArticlePanel" style="display: none;">
+                    <div class="article-header">
+                        <h3 id="articleDateMain">Analysis for Date</h3>
+                        <button id="generateArticleMain" class="btn btn-primary">🤖 Generate AI Analysis</button>
+                    </div>
+                    <div class="article-events-main" id="articleEventsMain"></div>
+                    <div class="article-content-main" id="articleContentMain">
+                        <p class="placeholder-text">Click the button above to generate AI analysis.</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </main>
+
+    <!-- Modal for Edit Query -->
+    <div id="queryModal" class="modal">
+        <div class="modal-content">
+            <span class="close-modal">&times;</span>
+            <h3 class="modal-title">Edit AI Research Query</h3>
+            <textarea id="customQueryInput" class="query-input" rows="4"
+                placeholder="Enter your custom question here..."></textarea>
+            <div class="modal-actions">
+                <button id="saveQueryBtn" class="btn btn-primary">Run Custom Query</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display:none;">
+        <div class="loading-content">
+            <div class="spinner large"></div>
+            <span id="loadingText">Running analysis...</span>
+        </div>
+    </div>
+
+    <script src="/static/app.js?v=4.0.1-fixed"></script>
+</body>
+
+</html>
