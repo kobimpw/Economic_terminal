@@ -67,24 +67,22 @@ class EconomicCalendarScraper:
         return driver
     
     def _get_calendar_url(self, country: str = "united states") -> Tuple[str, str, str]:
-        """Generate URL with filtering parameters for the next month."""
+        """Generate URL with filtering parameters for today + 30 days."""
         base_url = "https://tradingeconomics.com/calendar"
         today = datetime.now()
         
-        # Next month
-        if today.month == 12:
-            start_date = datetime(today.year + 1, 1, 1)
-        else:
-            start_date = datetime(today.year, today.month + 1, 1)
+        # Today + 30 days (includes current day and next 30 days)
+        start_date = today
+        end_date = today + timedelta(days=30)
         
-        if start_date.month == 12:
-            end_date = datetime(start_date.year + 1, 1, 1) - timedelta(days=1)
-        else:
-            end_date = datetime(start_date.year, start_date.month + 1, 1) - timedelta(days=1)
+        # Format dates
+        start_str = start_date.strftime("%Y-%m-%d")
+        end_str = end_date.strftime("%Y-%m-%d")
         
-        url = f"{base_url}?country={country.replace(' ', '+')}"
+        # Include date parameters in URL for proper filtering
+        url = f"{base_url}?country={country.replace(' ', '+')}&d1={start_str}&d2={end_str}"
         
-        return url, start_date.strftime("%Y-%m-%d"), end_date.strftime("%Y-%m-%d")
+        return url, start_str, end_str
     
     def _dismiss_overlays(self, driver: webdriver.Chrome) -> None:
         """Dismisses cookie consent pop-ups and other overlays."""

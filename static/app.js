@@ -257,11 +257,18 @@ function renderCalendar(calendar) {
     list.innerHTML = '';
 
     for (const [dateKey, indicators] of Object.entries(calendar)) {
-        // Date header
-        const dateHeader = document.createElement('div');
-        dateHeader.className = 'calendar-date-header';
-        dateHeader.innerHTML = `<h3>${formatDateKey(dateKey)}</h3>`;
-        list.appendChild(dateHeader);
+        // Collapsible date group using <details>
+        const dateGroup = document.createElement('details');
+        dateGroup.className = 'calendar-date-group';
+        dateGroup.open = true; // Open by default
+
+        const dateSummary = document.createElement('summary');
+        dateSummary.className = 'calendar-date-header';
+        dateSummary.innerHTML = `<h3>${formatDateKey(dateKey)}</h3><span class="date-expand-icon">▼</span>`;
+        dateGroup.appendChild(dateSummary);
+
+        const dateContent = document.createElement('div');
+        dateContent.className = 'calendar-date-content';
 
         for (const indicator of indicators) {
             if (!indicator || !indicator.series_id) {
@@ -302,7 +309,7 @@ function renderCalendar(calendar) {
             content.dataset.type = dataType;
 
             if (dataType === 'fred') {
-                // FRED indicator - full analysis layout
+                // FRED indicator - full analysis layout with View on FRED link
                 content.innerHTML = `
                     <div class="tile-layout">
                         <div class="tile-main">
@@ -331,6 +338,7 @@ function renderCalendar(calendar) {
                                     <input type="number" class="h-future" value="6" min="1" max="24">
                                 </div>
                                 <button class="btn btn-primary btn-run-analysis">Run Model Analysis</button>
+                                ${indicator.link ? `<a href="${indicator.link}" target="_blank" class="external-link-btn fred-link">View on FRED →</a>` : ''}
                             </div>
                             
                             <!-- Stats -->
@@ -512,11 +520,14 @@ function renderCalendar(calendar) {
                     }
                 });
 
-                list.appendChild(details);
+                dateContent.appendChild(details);
             } catch (tileError) {
                 console.error('Error rendering individual tile:', tileError, indicator);
             }
         }
+
+        dateGroup.appendChild(dateContent);
+        list.appendChild(dateGroup);
     }
 }
 

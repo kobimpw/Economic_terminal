@@ -10,6 +10,7 @@ from fastapi.responses import HTMLResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from typing import List, Optional, Dict, Any
+import math
 from src.core.predictor import PredictorCore
 import os
 import sqlite3
@@ -70,6 +71,19 @@ def get_predictor() -> PredictorCore:
             raise HTTPException(status_code=500, detail="FRED_API_KEY not configured in .env")
         _predictor = PredictorCore(FRED_API_KEY)
     return _predictor
+
+def sanitize_for_json(obj):
+    """Recursively sanitize data structure to replace inf/nan with None for JSON serialization."""
+    if isinstance(obj, dict):
+        return {k: sanitize_for_json(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [sanitize_for_json(item) for item in obj]
+    elif isinstance(obj, float):
+        if math.isnan(obj) or math.isinf(obj):
+            return None
+        return obj
+    else:
+        return obj
 
 
 
@@ -145,11 +159,11 @@ async def get_calendar():
         
         # Helper function for parallel execution
         def fetch_date(sid, meta):
-            # DISABLED SCRAPING: To prevent loading hangs
-            # return sid, meta, "TBD"
+            """Fetch next release date for a FRED series."""
             try:
-                # next_date = core.get_next_release(sid) # SKIPPED
-                 return sid, meta, "TBD"
+                # Try to get next release from core (cached or fast)
+                next_date = core.get_next_release(sid)
+                return sid, meta, next_date or "TBD"
             except Exception as e:
                 print(f"Error fetching release for {sid}: {e}")
                 return sid, meta, "TBD"
@@ -190,7 +204,8 @@ async def get_calendar():
                     "display_name": meta["display_name"],
                     "category": meta["category"],
                     "release_text": next_date, # Keep original text for display
-                    "sort_date": date_key
+                    "sort_date": date_key,
+                    "link": f"https://fred.stlouisfed.org/series/{sid}"
                 })
             except Exception as e:
                 print(f"Error processing {sid}: {e}")
@@ -204,7 +219,7 @@ async def get_calendar():
                 cursor = conn.cursor()
                 # Fetch earnings for today and future
                 today_str = date.today().strftime("%Y-%m-%d")
-                cursor.execute("SELECT * FROM sp500_earning WHERE \"Earnings Date\" >= ? ORDER BY \"Earnings Date\" LIMIT 50", (today_str,))
+                cursor.execute("SELECT * FROM sp500_earning WHERE \"Earnings Date\" >= ? ORDER BY \"Earnings Date\" LIMIT 1000", (today_str,))
                 for row in cursor.fetchall():
                     stock = dict(row)
                     d_key = stock.get("Earnings Date", "9999-12-31")
@@ -239,7 +254,7 @@ async def get_calendar():
                 conn.row_factory = sqlite3.Row
                 cursor = conn.cursor()
                 today_str = date.today().strftime("%Y-%m-%d")
-                cursor.execute("SELECT * FROM economic_events WHERE Date >= ? ORDER BY Date LIMIT 50", (today_str,))
+                cursor.execute("SELECT * FROM economic_events WHERE Date >= ? ORDER BY Date LIMIT 1000", (today_str,))
                 for row in cursor.fetchall():
                     event = dict(row)
                     d_key = event.get("Date")
@@ -362,12 +377,12 @@ async def get_precomputed_model(series_id: str):
         # Check cache first
         if series_id in PRECOMPUTED_MODELS and "result" in PRECOMPUTED_MODELS[series_id]:
             cached = PRECOMPUTED_MODELS[series_id]
-            return {
+            return sanitize_for_json({
                 "cached": True,
                 "best_model": cached["best_model"],
                 "computed_at": cached["computed_at"],
                 "result": cached["result"]
-            }
+            })
         
         # Check disk cache (JSON file)
         import json
@@ -383,13 +398,13 @@ async def get_precomputed_model(series_id: str):
                         # Update memory cache
                         PRECOMPUTED_MODELS[series_id] = disk_cache[series_id]
                         cached = disk_cache[series_id]
-                        return {
+                        return sanitize_for_json({
                             "cached": True,
                             "source": "disk",
                             "best_model": cached["best_model"],
                             "computed_at": cached["computed_at"],
                             "result": cached["result"]
-                        }
+                        })
             except Exception as e:
                 print(f"Error reading precompute cache: {e}")
 
@@ -399,17 +414,20 @@ async def get_precomputed_model(series_id: str):
         core.fetch_data(series_id)
         result = core.find_best_model(n_test=12, h_future=6)
         
+        # Sanitize result before caching and returning
+        sanitized_result = sanitize_for_json(result)
+        
         # Cache the result
         PRECOMPUTED_MODELS[series_id] = {
-            "result": result,
-            "best_model": result.get("best_model", "unknown"),
+            "result": sanitized_result,
+            "best_model": sanitized_result.get("best_model", "unknown") if isinstance(sanitized_result, dict) else "unknown",
             "computed_at": datetime.now().isoformat()
         }
         
         return {
             "cached": False,
-            "best_model": result.get("best_model"),
-            "result": result
+            "best_model": sanitized_result.get("best_model") if isinstance(sanitized_result, dict) else None,
+            "result": sanitized_result
         }
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

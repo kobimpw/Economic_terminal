@@ -44,3 +44,6 @@ htmlcov/
 dist/
 build/
 *.egg-info/
+
+# Local notes
+notatnik.md

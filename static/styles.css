@@ -2095,3 +2095,62 @@ body {
         grid-template-columns: repeat(2, 1fr);
     }
 }
+
+/* ============================================
+   COLLAPSIBLE DATE GROUPS
+   ============================================ */
+.calendar-date-group {
+    margin-bottom: 0.5rem;
+}
+
+.calendar-date-group > summary {
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: var(--spacing-sm) var(--spacing-md);
+    background: linear-gradient(135deg, rgba(26, 86, 219, 0.08), rgba(26, 86, 219, 0.02));
+    border-left: 3px solid var(--color-primary);
+    border-radius: var(--radius-sm);
+    font-weight: 600;
+    font-size: var(--font-size-sm);
+    color: var(--color-text);
+    transition: background-color 0.15s ease;
+}
+
+.calendar-date-group > summary:hover {
+    background: linear-gradient(135deg, rgba(26, 86, 219, 0.12), rgba(26, 86, 219, 0.05));
+}
+
+.calendar-date-group > summary::-webkit-details-marker {
+    display: none;
+}
+
+.calendar-date-group > summary h3 {
+    margin: 0;
+    font-size: var(--font-size-sm);
+    font-weight: 600;
+}
+
+.date-expand-icon {
+    font-size: 10px;
+    transition: transform 0.2s ease;
+    color: var(--color-text-secondary);
+}
+
+.calendar-date-group:not([open]) .date-expand-icon {
+    transform: rotate(-90deg);
+}
+
+.calendar-date-content {
+    padding-left: var(--spacing-sm);
+    margin-top: var(--spacing-xs);
+}
+
+/* FRED link in tile config bar */
+.fred-link {
+    margin-left: auto;
+    font-size: var(--font-size-sm);
+    padding: var(--spacing-xs) var(--spacing-sm);
+}
